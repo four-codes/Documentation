@@ -1,0 +1,64 @@
+variable -> Edit -> 
+
+name=job type=Qury
+data source prometheus Refresh On Dashboard Change
+query -> label_values(node_uname_info, job) 
+
+name=hostname type=Qury
+data source prometheus Refresh On Dashboard Change
+query -> label_values(node_uname_info{job=~"$job"}, nodename)
+
+enable -> multi value, include all options
+
+name=node type=Qury
+data source prometheus Refresh On Dashboard Change
+label_values(node_uname_info{nodename=~"$hostname"},instance)
+
+enable ->  include all options
+
+
+name=maxmount type=Qury hide -> variable
+data source prometheus Refresh On Dashboard Change
+query -> query_result(topk(1,sort_desc (max(node_filesystem_size_bytes{instance=~'$node',fstype=~"ext4|xfs"}) by (mountpoint))))
+Regex -> /.*\"(.*)\".*/
+
+
+name=env type=Qury hide -> variable
+data source prometheus Refresh On Dashboard Change
+query -> label_values(node_exporter_build_info,env)
+
+
+name=name type=Qury hide -> variable
+data source prometheus Refresh On Dashboard Change
+query -> label_values(node_exporter_build_info{env=~'$env'},name)
+
+
+
+Query::
+
+node_load1{instance=~"$node"}
+
+
+
+table:
+
+node_filesystem_size_bytes{instance=~'$node',fstype=~"ext4|xfs"}-0
+node_filesystem_avail_bytes {instance=~'$node',fstype=~"ext4|xfs"}-0
+1-(node_filesystem_free_bytes{instance=~'$node',fstype=~"ext4|xfs"} / node_filesystem_size_bytes{instance=~'$node',fstype=~"ext4|xfs"})
+
+
+cpu io wait
+
+avg(irate(node_cpu_seconds_total{instance=~"$node",mode="iowait"}[30m])) * 100
+
+
+1-(node_filesystem_free_bytes{instance=~'$node',fstype=~"ext4|xfs"} / node_filesystem_size_bytes{instance=~'$node',fstype=~"ext4|xfs"})
+node_filesystem_files_free{instance=~'$node',fstype=~"ext4|xfs"} / node_filesystem_files{instance=~'$node',fstype=~"ext4|xfs"}
+
+
+node_filefd_allocated{instance=~"$node"}
+irate(node_context_switches_total{instance=~"$node"}[30m])
+node_filefd_maximum{instance=~"$node"}
+
+
+sum(count(node_cpu_seconds_total{instance=~"$node", mode='system'}) by (cpu))
