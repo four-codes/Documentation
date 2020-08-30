@@ -1,0 +1,112 @@
+---
+trigger: none
+resources:
+- repo: self
+
+stages:
+- stage: STAGE1
+  displayName: 'ANGULAR BUILD'
+  jobs:  
+  - job: 'BUILDPROCESS'
+    displayName: BUILD
+    pool:
+      vmImage: 'ubuntu-latest'
+    steps:
+    - task: NodeTool@0
+      displayName: 'Use Node 12.x'
+      inputs:
+        versionSpec: 12.x
+
+    - task: Npm@1
+      displayName: 'npm install'
+      inputs:
+        workingDir: wbgangular
+        verbose: false
+
+    - task: Npm@1
+      displayName: 'npm Build'
+      inputs:
+        command: custom
+        workingDir: wbgangular
+        verbose: false
+        customCommand: 'run build --prod'
+
+    - task: ArchiveFiles@2
+      displayName: 'Angular zip'
+      inputs:
+        rootFolderOrFile: wbgangular/dist/wbgangular
+        archiveFile: '$(Build.ArtifactStagingDirectory)/angular.zip'
+
+    - task: PublishPipelineArtifact@1
+      displayName: 'Publish Build Artifact'
+      inputs:
+        targetPath: '$(Build.ArtifactStagingDirectory)/angular.zip'
+        artifact: angular # artifcats name called
+
+
+- stage: STAGE2
+  jobs:
+  - deployment: 'DEVELOPMENT'
+    displayName: 'DEV DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    environment: 'dev'
+    continueOnError: false
+    variables:
+      - group: common-dev # dev variable group section
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'development deployment'
+            inputs:
+              azureSubscription: WbAdocredentials # service principle name > change here
+              appType: webAppLinux                # app type > change here
+              appName: www                        # app name > change here
+              package: '${Build.ArtifactStagingDirectory}/angular/angular.zip'
+
+- stage: STAGE3
+  jobs:
+  - deployment: 'TEST'
+    displayName: 'TEST DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    environment: 'test'
+    continueOnError: false
+    variables:
+      - group: common-test # test variable group section
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Production deployment'
+            inputs:
+              azureSubscription: WbAdocredentials # service principle name > change here
+              appType: webAppLinux                # app type > change here
+              appName: www                        # app name > change here
+              package: '${Build.ArtifactStagingDirectory}/angular/angular.zip'
+
+- stage: STAGE4
+  jobs:
+  - deployment: 'PRODUCTION'
+    displayName: 'PROD DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    environment: 'prod'
+    continueOnError: false
+    variables:
+      - group: common-prod # prod variable group section
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureWebApp@1
+            displayName: 'Production deployment'
+            inputs:
+              azureSubscription: WbAdocredentials # service principle name > change here
+              appType: webAppLinux                # app type > change here
+              appName: www                        # app name > change here
+              package: '${Build.ArtifactStagingDirectory}/angular/angular.zip'
+

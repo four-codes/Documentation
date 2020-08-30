@@ -1,0 +1,122 @@
+---
+trigger:
+  - master
+resources:
+- repo: self
+
+stages:
+- stage: Build # Build Source Code for Dotnet Core Web App
+  jobs:
+  - job: BuildSource
+    pool:
+      vmImage: 'Ubuntu-latest'
+    variables:
+      buildConfiguration: 'Release' 
+    continueOnError: false
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: build
+        arguments: '--configuration $(buildConfiguration)'
+
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: publish
+        arguments: '--configuration $(buildConfiguration) --output $(Build.ArtifactStagingDirectory)'
+        modifyOutputPath: true
+        zipAfterPublish: true
+    - task: PublishBuildArtifacts@1
+      inputs:
+        path: $(Build.ArtifactStagingDirectory)
+        artifact: drop
+
+# Run Unit tests in the Source code
+# if unit test need please use otherwise comment the line
+- stage: Run_Unit_tests 
+  jobs:
+  - job: Tests
+    pool:
+      vmImage: 'Ubuntu-latest'
+    variables:
+      buildConfiguration: 'Release'
+    continueOnError: true
+    steps:
+    - task: DotNetCoreCLI@2
+      inputs:
+        command: test
+        projects: dotnetcore-tests        
+        arguments: '--configuration $(buildConfiguration) --logger trx'
+    - task: PublishTestResults@2
+      condition: succeededOrFailed()
+      inputs:
+        testRunner: VSTest
+        testResultsFiles: '**/*.trx'
+
+# Development resouece deployment process
+
+- stage: 'STAGE2' 
+  jobs:
+  - deployment: 'DEVELOPMENT'
+    displayName: 'DEV DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    variables:
+      - group: common-dev
+    environment: 'dev'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureRMWebAppDeployment@4
+            displayName: 'development deployment'
+            inputs:
+              WebAppKind: webApp
+              ConnectedServiceName: 'pay-as-you-go' # serviceConnectionName > change here
+              WebAppName:  webappname               # $(WebAppName) > change here
+              Package: $(System.WorkFolder)/**/*.zip
+
+# Test resouece deployment process
+
+- stage: STAGE3 
+  jobs:
+  - deployment: 'TEST'
+    displayName: 'TEST DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    variables:
+      - group: common-test
+    environment: 'test'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureRMWebAppDeployment@4
+            displayName: 'test deployment'
+            inputs:
+              WebAppKind: webApp
+              ConnectedServiceName: 'pay-as-you-go' # serviceConnectionName > change here
+              WebAppName:  webappname               # $(WebAppName) > change here
+              Package: $(System.WorkFolder)/**/*.zip
+
+# Production resouece deployment process
+
+- stage: STAGE4 
+  jobs:
+  - deployment: 'PRODUCTION'
+    displayName: 'PRODUCTION DEPLOYMENT'
+    pool:
+      vmImage: 'Ubuntu-latest'
+    variables:
+      - group: common-prod
+    environment: 'prod-environment'
+    strategy:
+      runOnce:
+        deploy:
+          steps:
+          - task: AzureRMWebAppDeployment@4
+            displayName: Azure App Service Deploy
+            inputs:
+              WebAppKind: webApp
+              ConnectedServiceName: 'pay-as-you-go' # serviceConnectionName > change here
+              WebAppName:  webappname               # $(WebAppName) > change here
+              Package: $(System.WorkFolder)/**/*.zip
