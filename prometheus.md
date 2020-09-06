@@ -287,7 +287,7 @@ pushgateway installation
         #    instance: 127.0.0.1
 
         command=$(curl -s -o /dev/null -I -w "%{http_code}" https://google.com)
-        post_data=$(curl --data-binary @- http://localhost:9091/metrics/job_name/cron_batchtrigger/instance/127.0.0.0)
+        post_data=$(curl --data-binary @- http://localhost:9091/metrics/jobname/batchtrigger/instance/127.0.0.0)
 
         if [ $command == 200 ]; then
             echo "login_trigger 0" | $post_data
