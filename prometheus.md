@@ -1,5 +1,5 @@
-  Prometheus Installation
-   
+prometheus installation
+
     sudo useradd --no-create-home -c "Monitoring user" --shell /bin/false prometheus
     sudo mkdir /etc/prometheus
     sudo mkdir /var/lib/prometheus
@@ -47,18 +47,18 @@
     WorkingDirectory=/var/lib/prometheus
     User=prometheus
     ExecStart=/usr/local/bin/prometheus \
-    --config.file=/etc/prometheus/prometheus.yml \
-    --storage.tsdb.path=/var/lib/prometheus/data/ \
-    --web.console.templates=/etc/prometheus/consoles \
-    --web.console.libraries=/etc/prometheus/console_libraries \
-    --storage.tsdb.retention=30d \
-    --web.enable-admin-api \
-    --web.external-url=http://localhost:9090 \
-    --web.listen-address="0.0.0.0:9090" \
-    --log.level=info \
-    --web.enable-lifecycle \
-    --web.page-title="Prometheus Time Series Collection and Processing Server" \
-    --log.format=logfmt
+     --config.file=/etc/prometheus/prometheus.yml \
+     --storage.tsdb.path=/var/lib/prometheus/data/ \
+     --web.console.templates=/etc/prometheus/consoles \
+     --web.console.libraries=/etc/prometheus/console_libraries \
+     --storage.tsdb.retention=30d \
+     --web.enable-admin-api \
+     --web.external-url=http://localhost:10000 \
+     --web.listen-address="0.0.0.0:10000" \
+     --log.level=info \
+     --web.enable-lifecycle \
+     --web.page-title="Prometheus Time Series Collection and Processing Server" \
+     --log.format=logfmt
 
     Restart=always
     StandardOutput=syslog
@@ -67,15 +67,210 @@
     [Install]
     WantedBy=default.target
 
-    :wq!
-
 
     sudo systemctl daemon-reload
     sudo systemctl start prometheus
     sudo systemctl status prometheus
-
-
     sudo netstat -tulpn 
-    
-    
-    open browser IP:9090
+
+
+    # vim /etc/prometheus/prometheus.yml
+
+    global:
+      scrape_interval:     15s # default 1m
+      evaluation_interval: 15s # default 1m
+      scrape_timeout: 10s      # default 10s
+
+    # Alertmanager configuration
+    alerting:
+      alertmanagers:
+      - static_configs:
+        - targets:
+          # - alertmanager:9093
+
+    # Load rules once and periodically evaluate them according to the global 'evaluation_interval'.
+    rule_files:
+      # - "first_rules.yml"
+      # - "second_rules.yml"
+
+    scrape_configs:
+      - job_name: 'prometheus'
+        static_configs:
+        - targets: ['localhost:9090']
+          labels: 
+            instance: Prometheus
+
+node exporter installation
+
+    # Create node_exporter Service [Each server]
+    sudo useradd --no-create-home -c "Monitoring user" --shell /bin/false node_exporter
+
+    wget https://github.com/prometheus/node_exporter/releases/download/v1.0.1/node_exporter-1.0.1.linux-amd64.tar.gz
+    tar -vxzf node_exporter-1.0.1.linux-amd64.tar.gz
+    sudo mv node_exporter-1.0.1.linux-amd64/node_exporter /usr/local/bin/
+    sudo chown -R node_exporter:node_exporter  /usr/local/bin/node_exporter
+
+    sudo vim /etc/systemd/system/node_exporter.service
+
+    # /etc/systemd/system/node_exporter.service
+    [Unit]
+    Description=Prometheus node exporter
+    After=network.target auditd.service
+
+    [Service]
+    User=node_exporter
+    ExecStart=/usr/local/bin/node_exporter \
+      --web.listen-address=0.0.0.0:9100 \
+      --collector.tcpstat \
+      --collector.bonding \
+      --collector.systemd \
+      --collector.systemd.unit-whitelist=(sshd|httpd|node_exporter|vsftpd|crond|firewalld|rsyslog).service \
+      --collector.meminfo_numa \
+      --collector.logind \
+      --collector.filesystem.ignored-mount-points "^(/snap/|/run/|/dev/|/sys|/run).*" \
+      --collector.netdev.ignored-devices "^lo.*" \
+      --no-collector.wifi \
+      --no-collector.nfs \
+      --no-collector.zfs \
+      --no-collector.nfsd \
+      --no-collector.mdadm \
+      --no-collector.arp \
+      --no-collector.bcache \
+      --no-collector.buddyinfo \
+      --no-collector.edac \
+      --no-collector.hwmon \
+      --no-collector.qdisc \
+      --no-collector.infiniband \
+      --collector.ipvs 
+      #--path.procfs=/proc 
+    Restart=on-failure
+    StandardOutput=syslog
+    StandardError=syslog
+
+    [Install]
+    WantedBy=default.target
+
+
+    sudo systemctl daemon-reload
+    sudo systemctl start node_exporter
+    sudo systemctl status node_exporter
+    sudo netstat -tulpn 
+
+mysql exporter installtion
+
+    # install mysql exporter MariaDB mysql [Each Server]
+    sudo useradd --no-create-home -c "Monitoring user" --shell /bin/false mysqld_exporter
+    wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.12.1/mysqld_exporter-0.12.1.linux-amd64.tar.gz
+    tar -vxzf mysqld_exporter-0.12.1.linux-amd64.tar.gz
+    mv mysqld_exporter-0.12.1.linux-amd64. /usr/local/bin/
+    sudo chown -R mysqld_exporter:mysqld_exporter  /usr/local/bin/mysqld_exporter
+
+
+    # its need mysql server (Require new installtion)
+    sudo apt install mysql-server
+    sudo systemctl start mysql
+    sudo mysql_secure_installtion
+    sudo mysql -u root -p 
+
+    # Create Mysql user for mysqld_exporter
+
+    CREATE USER 'mysqld_exporter'@'<PrometheusHostIP>' IDENTIFIED BY 'StrongPassword' WITH MAX_USER_CONNECTIONS 2;
+    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'mysqld_exporter'@'<PrometheusHostIP>';
+    FLUSH PRIVILEGES;
+    EXIT
+
+    sudo vim /etc/.mysqld_exporter.cnf
+
+    [client]
+    user=mysqld_exporter
+    password=StrongPassword
+
+
+    sudo chown root:prometheus /etc/.mysqld_exporter.cnf
+
+    sudo vim /etc/systemd/system/mysql_exporter.service
+
+    [Unit]
+    Description=Prometheus MySQL Exporter
+    After=network.target
+
+    [Service]
+    Type=simple
+    User=mysqld_exporter
+    Restart=always
+    ExecStart=/usr/local/bin/mysqld_exporter \
+      --config.my-cnf /etc/.mysqld_exporter.cnf \
+      --collect.global_status \
+      --collect.info_schema.innodb_metrics \
+      --collect.auto_increment.columns \
+      --collect.info_schema.processlist \
+      --collect.binlog_size \
+      --collect.info_schema.tablestats \
+      --collect.global_variables \
+      --collect.info_schema.query_response_time \
+      --collect.info_schema.userstats \
+      --collect.info_schema.tables \
+      --collect.perf_schema.tablelocks \
+      --collect.perf_schema.file_events \
+      --collect.perf_schema.eventswaits \
+      --collect.perf_schema.indexiowaits \
+      --collect.perf_schema.tableiowaits \
+      --collect.slave_status \
+      --web.listen-address=0.0.0.0:9104
+
+    [Install]
+    WantedBy=multi-user.target
+
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable mysql_exporter
+    sudo systemctl start mysql_exporter
+    sudo netstat -tulpn
+
+
+pushgateway installation
+
+    # PushGateway
+    sudo useradd --no-create-home -c "Monitoring user" --shell /bin/false pushgateway
+    wget https://github.com/prometheus/pushgateway/releases/download/v1.2.0/pushgateway-1.2.0.linux-amd64.tar.gz
+    tar -xvzf pushgateway-1.2.0.linux-amd64.tar.gz
+    mv pushgateway-1.2.0.linux-amd64/pushgateway /usr/local/bin/
+    sudo chown -R pushgateway:pushgateway /usr/local/bin/pushgateway
+
+
+    sudo cat > /etc/systemd/system/pushgateway.service << EOF
+    [Unit]
+    Description=Pushgateway
+    Wants=network-online.target
+    After=network-online.target
+
+    [Service]
+    User=pushgateway
+    Group=pushgateway
+    Type=simple
+    ExecStart=/usr/local/bin/pushgateway \
+        --web.listen-address=":9091" \
+        --web.telemetry-path="/metrics" \
+        --persistence.file="/tmp/metric.store" \
+        --persistence.interval=5m \
+        --log.level="info" \
+        --log.format="logger:stdout?json=true"
+
+    [Install]
+    WantedBy=multi-user.target
+    EOF
+
+
+    sudo systemctl daemon-reload
+    sudo systemctl enable pushgateway
+    sudo systemctl start pushgateway
+    sudo netstat -tulpn
+
+
+    echo "some_metric 3.14" | curl --data-binary @- http://localhost:9091/metrics/job/cron_job/instance/127.0.0.0
+
+    # to find the metrics
+    curl -L http://localhost:9091/metrics/
+
+    # if you want delete the request
+    curl -X DELETE http://localhost:9091/metrics/job/cron_job/instance/127.0.0.0
