@@ -128,7 +128,6 @@ node exporter installation
       --collector.meminfo_numa \
       --collector.logind \
       --collector.filesystem.ignored-mount-points "^(/snap/|/run/|/dev/|/sys|/run).*" \
-      --collector.netdev.ignored-devices "^lo.*" \
       --no-collector.wifi \
       --no-collector.nfs \
       --no-collector.zfs \
@@ -155,6 +154,20 @@ node exporter installation
     sudo systemctl start node_exporter
     sudo systemctl status node_exporter
     sudo netstat -tulpn 
+
+    # need to change prometheus server.
+    # vim /etc/prometheus/prometheus.yml
+    # add the new server with new nodeexporter
+      - job_name: 'nodeexporter'
+        static_configs: 
+        - targets: ['localhost:9100']    # server IP address
+          labels: 
+            instance: Prometheus-server  # server name
+        # add the new server with existing nodeexporter
+        - targets: ['10.0.1.4:9100']     # server IP address
+          labels: 
+            instance: additional-server  # server name
+
 
 mysql exporter installtion
 
