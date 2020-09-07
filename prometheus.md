@@ -155,6 +155,8 @@ node exporter installation
     sudo systemctl status node_exporter
     sudo netstat -tulpn 
 
+switch to prometheus server
+
     # need to change prometheus server.
     # vim /etc/prometheus/prometheus.yml
     # add the new server with new nodeexporter
@@ -168,6 +170,11 @@ node exporter installation
           labels: 
             instance: additional-server  # server name
 
+
+        sudo systemctl restart prometheus
+        
+        
+        
 
 mysql exporter installtion
 
