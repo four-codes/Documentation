@@ -1,0 +1,58 @@
+pipeline {
+    agent any
+        environment { 
+        dockerhost = 'wbgcontainerregistry.azurecr.io'
+    }
+
+    stages {
+        
+        
+        
+    stage('usernamePassword') {
+      steps {
+        script {
+          withCredentials([
+            usernamePassword(credentialsId: 'acr',
+              usernameVariable: 'username',
+              passwordVariable: 'password')
+          ]) {
+          sh '''
+           docker login $dockerhost -u $username -p $password
+          '''
+          }
+        }
+      }
+    }
+        
+        
+        
+        stage('Docker image build') { 
+            steps {
+                sh 'docker build -t $dockerhost/test:latest .'
+            }
+        }
+        stage('Docker images list') { 
+            steps {
+                sh 'docker push $dockerhost/test:latest '
+            }
+        }
+    }
+    post {
+        always {
+            echo 'One way or another, I have finished'
+            deleteDir() /* clean up our workspace */
+        }
+        success {
+            echo 'I succeeeded!'
+        }
+        unstable {
+            echo 'I am unstable :/'
+        }
+        failure {
+            echo 'I failed :('
+        }
+        changed {
+            echo 'Things were different before...'
+        }
+    }
+}
