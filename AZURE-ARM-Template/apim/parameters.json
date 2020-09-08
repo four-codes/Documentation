@@ -1,0 +1,18 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentParameters.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "subscriptions_5ef6d95953a8050042070001_displayName": {
+            "value": null
+        },
+        "subscriptions_5ef6d95a53a8050042070002_displayName": {
+            "value": null
+        },
+        "users_1_lastName": {
+            "value": null
+        },
+        "service_jaye_name": {
+            "value": null
+        }
+    }
+}

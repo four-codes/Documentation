@@ -1,0 +1,332 @@
+{
+    "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
+    "contentVersion": "1.0.0.0",
+    "parameters": {
+        "adminUsername": {
+            "type": "string",
+            "metadata": {
+                "description": "Username for the Virtual Machine."
+            }
+        },
+        "adminPassword": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Password for the Virtual Machine."
+            }
+        },
+        "computerName": {
+            "type": "string",
+            "metadata": {
+                "description": "computer name for the Virtual Machine."
+            }
+        },
+        "sku": {
+            "type": "string",
+            "metadata": {
+                "description": "SKU Virtual Machine."
+            }
+        },
+        "vmSize": {
+            "type": "securestring",
+            "metadata": {
+                "description": "Machine Size."
+            }
+        },
+
+
+    },
+    "functions": [
+    ],
+    "variables": {
+        "bastion-subnet-name": "AzureBastionSubnet",
+        "private-subnet-name": "PrivateSubnet",
+        "bastion-security-Group-name": "Bastion_NSG",
+        "private-security-Group-name": "Private_NSG",
+        "virtual-network-name": "test-virtual-network",
+        "bastion-public-ip-address-name": "BastionIP",
+        "bastion-service-name": "Bastion_Host",
+        "vm-network-interface-name": "windows-server-nic",
+        "virtual-network-address": "10.0.0.0/16",
+        "virtual-network-bastion-subnet-address": "10.0.1.0/24",
+        "virtual-network-private-subnet-address": "10.0.2.0/24",
+        "virtual-machine-name": "windows-server"
+    },
+    "resources": [
+
+        {
+            "name": "[variables('bastion-security-Group-name')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "InRule_1",
+                        "properties": {
+                            "description": "description",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "GatewayManager",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "InRule_2",
+                        "properties": {
+                            "description": "Should be need",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "Internet",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1001,
+                            "direction": "Inbound"
+                        }
+                    },
+                    {
+                        "name": "OutRule_1",
+                        "properties": {
+                            "description": "should be need",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "443",
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "AzureCloud",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Outbound"
+                        }
+                    },
+                    {
+                        "name": "OutRule_2",
+                        "properties": {
+                            "description": "should be need",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRanges": [
+                                "22",
+                                "3389"
+                            ],
+                            "sourceAddressPrefix": "*",
+                            "destinationAddressPrefix": "VirtualNetwork",
+                            "access": "Allow",
+                            "priority": 1001,
+                            "direction": "Outbound"
+                        }
+                    }
+                ]
+            }
+        },
+
+        {
+            "name": "[variables('private-security-Group-name')]",
+            "type": "Microsoft.Network/networkSecurityGroups",
+            "apiVersion": "2018-08-01",
+            "location": "[resourceGroup().location]",
+            "properties": {
+                "securityRules": [
+                    {
+                        "name": "InRule_1",
+                        "properties": {
+                            "description": "Must be need",
+                            "protocol": "*",
+                            "sourcePortRange": "*",
+                            "destinationPortRange": "*",
+                            "sourceAddressPrefix": "VirtualNetwork",
+                            "destinationAddressPrefix": "*",
+                            "access": "Allow",
+                            "priority": 1000,
+                            "direction": "Inbound"
+                        }
+                    }
+                ]
+            }
+        },
+
+        {
+            "name": "[variables('bastion-public-ip-address-name')]",
+            "type": "Microsoft.Network/publicIPAddresses",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "provisionBy": "ARM TEMPLATE"
+            },
+            "sku": {
+                "name": "Standard"
+            },
+            "properties": {
+                "publicIPAllocationMethod": "Static",
+            }
+        },
+                {
+            "name": "[variables('virtual-network-name')]",
+            "type": "Microsoft.Network/virtualNetworks",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastion-security-Group-name'))]",
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('private-security-Group-name'))]"
+            ],
+            "tags": {
+                "displayName": "vnet-test"
+            },
+            "properties": {
+                "addressSpace": {
+                    "addressPrefixes": [
+                        "[variables('virtual-network-address')]"
+                    ]
+                },
+
+                "subnets": [
+                    {
+                        "name": "[variables('bastion-subnet-name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('virtual-network-bastion-subnet-address')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastion-security-Group-name'))]"
+                            }
+                        }
+                    },
+                    {
+                        "name": "[variables('private-subnet-name')]",
+                        "properties": {
+                            "addressPrefix": "[variables('virtual-network-private-subnet-address')]",
+                            "networkSecurityGroup": {
+                                "id": "[resourceId('Microsoft.Network/networkSecurityGroups', variables('private-security-Group-name'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+                {
+            "name": "[variables('bastion-service-name')]",
+            "type": "Microsoft.Network/bastionHosts",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkSecurityGroups', variables('bastion-security-Group-name'))]",
+                "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastion-public-ip-address-name'))]"
+            ],
+            "tags": {
+                "provisionBy": "arm template"
+                
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "properties": {
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtual-network-name'), variables('bastion-subnet-name'))]"
+                            },
+                            "publicIPAddress": {
+                                "id": "[resourceId('Microsoft.Network/publicIPAddresses', variables('bastion-public-ip-address-name'))]"
+                            },
+                            "privateIPAllocationMethod": "Dynamic"
+                        },
+                        "name": "Bastion-ipConfigurations"
+                    }
+                ],
+            }
+        },
+        {
+            "name": "[toLower('storagecvxtestdemo')]",
+            "type": "Microsoft.Storage/storageAccounts",
+            "apiVersion": "2019-06-01",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "provisionBy": "arm template"
+            },
+            "sku": {
+                "name": "Standard_LRS"
+            },
+            "kind": "Storage"
+        },
+        {
+            "name": "[variables('vm-network-interface-name')]",
+            "type": "Microsoft.Network/networkInterfaces",
+            "apiVersion": "2019-11-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Storage/storageAccounts', toLower('storagecvxtestdemo'))]",
+                "[resourceId('Microsoft.Network/virtualNetworks', variables('virtual-network-name'))]"
+
+            ],
+            "tags": {
+                "provisionBy": "arm template"
+            },
+            "properties": {
+                "ipConfigurations": [
+                    {
+                        "name": "VM_Config_1",
+                        "properties": {
+                            "privateIPAllocationMethod": "Dynamic",
+                            "subnet": {
+                                "id": "[resourceId('Microsoft.Network/virtualNetworks/subnets', variables('virtual-network-name'), variables('private-subnet-name'))]"
+                            }
+                        }
+                    }
+                ]
+            }
+        },
+        {
+            "name": "[variables('virtual-machine-name')]",
+            "type": "Microsoft.Compute/virtualMachines",
+            "apiVersion": "2018-10-01",
+            "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Network/networkInterfaces/', variables('vm-network-interface-name'))]"
+            ],
+            "properties": {
+                "hardwareProfile": {
+                    "vmSize": "[parameters('vmSize')]"
+                },
+                "osProfile": {
+                    "computerName": "[parameters('computerName')]",
+                    "adminUsername": "[parameters('adminUsername')]",
+                    "adminPassword": "[parameters('adminPassword')]"
+                },
+                "storageProfile": {
+                    "imageReference": {
+                        "publisher": "MicrosoftWindowsServer",
+                        "offer": "WindowsServer",
+                        "sku": "[parameters('sku')]",
+                        "version": "latest"
+                    },
+                    "osDisk": {
+                        "name": "OsDisk",
+                        "createOption": "FromImage"
+                    },
+                    "dataDisks": [
+                        {
+                            "name": "Disk1",
+                            "diskSizeGB": 100,
+                            "lun": 0,
+                            "createOption": "Empty"
+                        }
+                    ]
+                },
+                "networkProfile": {
+                    "networkInterfaces": [
+                        {
+                            "id": "[resourceId('Microsoft.Network/networkInterfaces', variables('vm-network-interface-name'))]"
+                        }
+                    ]
+                }
+
+            }
+        }
+
+
+
+
+
+    ],
+    "outputs": {
+    }
+}
