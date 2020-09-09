@@ -258,7 +258,7 @@ pushgateway installation
     sudo chown -R pushgateway:pushgateway /usr/local/bin/pushgateway
 
 
-    sudo cat > /etc/systemd/system/pushgateway.service << EOF
+    sudo vim /etc/systemd/system/pushgateway.service
     [Unit]
     Description=Pushgateway
     Wants=network-online.target
@@ -273,13 +273,10 @@ pushgateway installation
         --web.telemetry-path="/metrics" \
         --persistence.file="/tmp/metric.store" \
         --persistence.interval=5m \
-        --log.level="info" \
-        --log.format="logger:stdout?json=true"
+        --log.level="info" 
 
     [Install]
     WantedBy=multi-user.target
-    EOF
-
 
     sudo systemctl daemon-reload
     sudo systemctl enable pushgateway
@@ -307,12 +304,10 @@ pushgateway installation
         #    instance: 127.0.0.1
 
         command=$(curl -s -o /dev/null -I -w "%{http_code}" https://google.com)
-        post_data=$(curl --data-binary @- http://localhost:9091/metrics/jobname/batchtrigger/instance/127.0.0.0)
-
         if [ $command == 200 ]; then
-            echo "login_trigger 0" | $post_data
+            echo "login_trigger 0" | curl --data-binary @- http://localhost:9091/metrics/job/batchtrigger/instance/127.0.0.0
         else
-            echo "login_trigger 1" | $post_data
+            echo "login_trigger 1" | curl --data-binary @- http://localhost:9091/metrics/job/batchtrigger/instance/127.0.0.0
         fi
 
         # bash cron_batchtrigger.sh
