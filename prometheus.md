@@ -206,7 +206,7 @@ mysql exporter installtion
     password=StrongPassword
 
 
-    sudo chown root:prometheus /etc/.mysqld_exporter.cnf
+    sudo chown root:mysqld_exporter /etc/.mysqld_exporter.cnf
 
     sudo vim /etc/systemd/system/mysql_exporter.service
 
@@ -247,6 +247,20 @@ mysql exporter installtion
     sudo systemctl start mysql_exporter
     sudo netstat -tulpn
 
+switch to prometheus server
+
+    # need to change prometheus server.
+    # vim /etc/prometheus/prometheus.yml
+    
+    # add the new server with new nodeexporter
+      - job_name: 'mysqlexporter'
+        static_configs: 
+        - targets: ['localhost:9104']    # MySQL IP address
+          labels: 
+            instance: mysql-server
+
+
+        sudo systemctl restart prometheus
 
 pushgateway installation
 
@@ -283,6 +297,22 @@ pushgateway installation
     sudo systemctl start pushgateway
     sudo netstat -tulpn
 
+
+
+switch to prometheus server
+
+    # need to change prometheus server.
+    # vim /etc/prometheus/prometheus.yml
+    
+    # add the new server with new nodeexporter
+      - job_name: 'pushgatewayexporter'
+        static_configs: 
+        - targets: ['localhost:9091']    # PushGateway IP address
+          labels: 
+            instance: pushgateway
+
+
+        sudo systemctl restart prometheus
 
     echo "some_metric 3.14" | curl --data-binary @- http://localhost:9091/metrics/job/cron_job/instance/127.0.0.0
 
