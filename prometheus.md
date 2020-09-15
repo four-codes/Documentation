@@ -194,8 +194,8 @@ mysql exporter installtion
 
     # Create Mysql user for mysqld_exporter
 
-    CREATE USER 'mysqld_exporter'@'<PrometheusHostIP>' IDENTIFIED BY 'StrongPassword' WITH MAX_USER_CONNECTIONS 2;
-    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'mysqld_exporter'@'<PrometheusHostIP>';
+    CREATE USER 'mysqld_exporter'@'localhost' IDENTIFIED BY 'StrongPassword' WITH MAX_USER_CONNECTIONS 2;
+    GRANT PROCESS, REPLICATION CLIENT, SELECT ON *.* TO 'mysqld_exporter'@'localhost';
     FLUSH PRIVILEGES;
     EXIT
 
