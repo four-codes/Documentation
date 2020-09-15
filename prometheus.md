@@ -182,7 +182,7 @@ mysql exporter installtion
     sudo useradd --no-create-home -c "Monitoring user" --shell /bin/false mysqld_exporter
     wget https://github.com/prometheus/mysqld_exporter/releases/download/v0.12.1/mysqld_exporter-0.12.1.linux-amd64.tar.gz
     tar -vxzf mysqld_exporter-0.12.1.linux-amd64.tar.gz
-    mv mysqld_exporter-0.12.1.linux-amd64. /usr/local/bin/
+    sudo mv mysqld_exporter-0.12.1.linux-amd64/mysqld_exporter /usr/local/bin/
     sudo chown -R mysqld_exporter:mysqld_exporter  /usr/local/bin/mysqld_exporter
 
 
