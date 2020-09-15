@@ -314,6 +314,8 @@ switch to prometheus server
 
         sudo systemctl restart prometheus
 
+PushGateway tasks
+
     echo "some_metric 3.14" | curl --data-binary @- http://localhost:9091/metrics/job/cron_job/instance/127.0.0.0
 
     # to find the metrics
