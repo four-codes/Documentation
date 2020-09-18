@@ -44,7 +44,7 @@ def main():
     if not is_error:
         module.exit_json(changed=False, meta=result)
     else:
-        module.fail_json(msg="Error importing file", meta=result)
+        module.fail_json(msg="Error Token", meta=result)
 
 
 if __name__ == '__main__':
