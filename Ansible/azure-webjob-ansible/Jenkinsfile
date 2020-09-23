@@ -1,0 +1,51 @@
+pipeline {
+    agent any
+
+    environment {
+        AppServiceName='jinojs'
+        TenantID="xxx"
+        ClientID="xxx"
+        ClientSecret="xxx"
+        FolderPath="index.zip"
+    }
+
+    stages {
+        stage('verify node installtion') { 
+            steps {
+                sh 'node --version'
+            }
+        }
+        stage('Package Init Process') { 
+            steps {
+                sh 'npm install'
+            }
+        }
+        stage('Package Build Process') { 
+            steps {
+                sh 'npm build --prod'
+            }
+        }
+        stage('File Compress Process') { 
+            steps {
+                sh 'zip command'
+            }
+        }
+        stage('Package Build Process') { 
+            steps {
+                sh '''
+
+                tenantID=${TenantID}
+                clientID=${ClientID}
+                clientSecret=${ClientSecret}
+                appServiceName=${AppServiceName}
+                folderPath=${FolderPath}
+
+                data="grant_type=client_credentials&client_id=$clientID&resource=https://management.core.windows.net/&client_secret=$clientSecret"
+                TOKEN=$(curl -X POST -d $data https://login.microsoftonline.com/$tenantID/oauth2/token | jq '.access_token' | sed 's/"//g')
+                curl -H "Authorization: Bearer ${TOKEN}" --data-binary @$folderPath https://$appServiceName.scm.azurewebsites.net/api/zipdeploy
+
+                '''
+            }
+        }
+    }
+}
