@@ -608,7 +608,8 @@ Alert Rules
           annotations:
             summary: "Node memory usage is going high"
             description: "Node memory for instance {{ $labels.instance }} has reached {{ $value }}%"
-
+            app_link: 'http://localhost:8000/'
+            
         - alert: NodeMemoryUsageAbove75%
           expr: (100 - job:node_memory_Mem_bytes:available) >= 75
           for: 2m
