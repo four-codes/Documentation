@@ -3,6 +3,6 @@
 
   SSL certficate creation methods
 
-    openssl req -key server.key -new -out server.csr
-    openssl x509 -in certificate.crt -text -noout
-    openssl pkcs12 -export -out domain.pfx -inkey domain.key -in domain.crt -certfile more.crt
+    openssl req -newkey rsa:2048 -nodes -keyout domain.key -x509 -days 365 -out domain.crt
+    openssl pkcs12 -export -out domain.pfx -inkey domain.key -in domain.crt 
+    
