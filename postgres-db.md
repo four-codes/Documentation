@@ -1,10 +1,20 @@
 user creation:
 
+
+```sql
+
     CREATE USER demo WITH PASSWORD '123';
+
+```
  
 db creation:
 
+```sql
+
     CREATE DATABASE mydb WITH OWNER demo;
+
+```
+ 
 
 psql restore command: 
 
@@ -106,3 +116,112 @@ Turn on query execution time
 
     To turn on query execution time, you use the \timing command.
     dvdrental=# \timing
+
+
+```sql
+
+DROP DATABASE [IF EXISTS] database_name;
+
+```
+Drop a database that has active connections
+
+    To delete the database that has active connections, you can follow these steps:
+
+    First, find the activities associated with the database by querying the pg_stat_activity view:
+
+
+```sql
+
+    SELECT * FROM pg_stat_activity WHERE datname = '<database_name>';
+
+```
+
+Second, terminate the active connections by issuing the following query:
+
+
+```sql
+
+    SELECT	pg_terminate_backend (pid) FROM	pg_stat_activity  WHERE	pg_stat_activity.datname = '<database_name>';
+
+```
+
+Notice that if you use PostgreSQL version 9.1 or earlier, use the procpidcolumn instead of the pidcolumn because PostgreSQL changed procidcolumn to pidcolumn since version 9.2
+
+Third, execute the DROP DATABASE statement:
+
+
+```sql
+   
+   DROP DATABASE <database_name>;
+
+```
+
+PostgreSQL DROP DATABASE examples
+
+We will use the databases created in the PostgreSQL create database tutorial for the demonstration.
+
+If you haven’t created this database yet, you can use the following CREATE DATABASE statements to create them:
+
+CREATE DATABASE hrdb;
+CREATE DATABASE testdb1;
+
+1) Drop a database that has no active connection example
+
+To remove the hrdbdatabase, use the hrdb owner to connect to a database other than hrdbdatabase e.g., postgres and issue the following statement:
+
+```sql
+
+    DROP DATABASE hrdb;
+
+```
+
+2) Drop a database that has active connections example
+
+The following statement deletes the testdb1database:
+
+
+```sql
+
+    DROP DATABASE testdb1;
+```
+
+However, PostgreSQL issued an error as follows:
+
+    ERROR: database "testdb1" is being accessed by other users
+    SQL state: 55006
+    Detail: There is 1 other session using the database.
+
+To drop the testdb1 database, you need to terminate the active connection and drop the database.
+
+First, query the pg_stat_activityview to find what activities are taking place against the testdb1database:
+
+```sql
+    
+    SELECT * FROM pg_stat_activity WHERE datname = 'testdb1';
+
+```
+
+PostgreSQL DROP DATABASE - testdb1 activities
+
+    The testdb1database has one connection from localhosttherefore it is safe to terminate this connection and remove the database. 
+
+    Second, terminate the connection to the testdb1database by using the following statement:
+
+```sql
+
+    SELECT
+        pg_terminate_backend (pg_stat_activity.pid)
+    FROM
+        pg_stat_activity
+    WHERE
+        pg_stat_activity.datname = 'testdb1';
+```
+
+Third, issue the DROP DATABASE command to remove the testdb1database:
+
+```sql
+
+    DROP DATABASE testdb1;
+
+```
+PostgreSQL drops the testdb1permanently.
