@@ -26,16 +26,24 @@ psql dump
     
 Connect to PostgreSQL database
 
-    The following command connects to a database under a specific user. After pressing Enter PostgreSQL will ask for the password of the user.
+    The following command connects to a database under a specific user. 
+    After pressing Enter PostgreSQL will ask for the password of the user.
+    
+ ```sql
+    
     psql -d database -U  user -W
-
+    
+ ```
 
     For example, to connect to dvdrental database under postgres user, you use the following command:
+
+ ```sql
 
     psql -d dvdrental -U postgres -W
     Password for user postgres:
     dvdrental=#
 
+```
     If you want to connect to a database that resides on another host, you add the -h option as follows:
 
     psql -h host -d database -U user -W
