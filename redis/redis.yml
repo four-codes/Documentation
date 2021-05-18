@@ -1,0 +1,20 @@
+---
+- hosts: all
+  tasks:
+  - name: Update the cluster
+    apt:
+      update_cache: yes
+      
+  - name: Install redis packages
+    apt:
+      name: "{{ item }}"
+      state: present
+    loop:
+      - redis-server
+      - redis-sentinel
+
+  - replace:
+      path: /etc/redis/redis.conf
+      regexp: '^bind 127\.0\.0\.1 ::1'
+      replace: '# bind 127.0.0.1 ::1'
+    when: ansible_hostname == "master-server"

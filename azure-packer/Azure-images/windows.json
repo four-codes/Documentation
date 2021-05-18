@@ -1,0 +1,68 @@
+{
+    "variables": {   
+      "tenant_id": "{{env `ARM_TENANT_ID`}}",
+      "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
+      "client_id": "{{env `ARM_CLIENT_ID`}}",
+      "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
+      "resource_group_name": "cache-poc",
+      "shared_image_gallery_name": "ino",
+      "image_definition_name": "packerimg",
+      "managed_image_name": "packerino",
+      "os_type": "Windows",
+      "image_publisher": "MicrosoftWindowsServer",
+      "image_offer": "WindowsServer",
+      "image_sku": "2016-Datacenter",
+      "image_version": "1.0.2",
+      "location": "East US",
+      "vm_size": "Standard_D2_v2"
+      },
+  
+    "builders": [{
+      "type": "azure-arm",
+      "client_id": "{{user `client_id`}}",
+      "client_secret": "{{user `client_secret`}}",
+      "tenant_id": "{{user `tenant_id`}}",
+      "subscription_id": "{{user `subscription_id`}}",
+      "os_type": "{{user `os_type`}}",
+      "image_publisher": "{{user `image_publisher`}}",
+      "image_offer": "{{user `image_offer`}}",
+      "image_sku": "{{user `image_sku`}}",
+      "communicator": "winrm",
+      "winrm_use_ssl": true,
+      "winrm_insecure": true,
+      "winrm_timeout": "5m",
+      "winrm_username": "packer",
+      "managed_image_resource_group_name": "{{user `resource_group_name`}}",
+      "managed_image_name": "{{user `managed_image_name`}}",
+      "shared_image_gallery_destination": {
+        "resource_group": "{{user `resource_group_name`}}",
+        "gallery_name": "{{user `shared_image_gallery_name`}}",
+        "image_name": "{{user `image_definition_name`}}",
+        "image_version": "{{user `image_version`}}",
+        "replication_regions": ["eastus", "westus"]
+      },
+  
+      "azure_tags": {
+        "provison_by": "Packer"
+       },
+  
+      "location": "{{user `location`}}",
+      "vm_size": "{{user `vm_size`}}"
+  
+      }],
+  
+    "provisioners": [
+      {
+      "type": "powershell",
+      "script": "./script.ps1"
+      },
+      {
+      "type": "powershell",
+      "inline": [
+        "& $env:SystemRoot\\System32\\Sysprep\\Sysprep.exe /oobe /generalize /quiet /quit",
+        "while($true) { $imageState = Get-ItemProperty HKLM:\\SOFTWARE\\Microsoft\\Windows\\CurrentVersion\\Setup\\State | Select ImageState; if($imageState.ImageState -ne 'IMAGE_STATE_GENERALIZE_RESEAL_TO_OOBE') { Write-Output $imageState.ImageState; Start-Sleep -s 10  } else { break } }"
+      ]
+      }
+      ]
+  }
+  

@@ -1,0 +1,54 @@
+{
+    "variables": {
+      "tenant_id": "{{env `ARM_TENANT_ID`}}",
+      "subscription_id": "{{env `ARM_SUBSCRIPTION_ID`}}",
+      "client_id": "{{env `ARM_CLIENT_ID`}}",
+      "client_secret": "{{env `ARM_CLIENT_SECRET`}}",
+      "resource_group_name": "cache-poc",
+      "shared_image_gallery_name": "ino",
+      "image_definition_name": "packerimg",
+      "managed_image_name": "packerino",
+      "os_type": "Linux",
+      "image_publisher": "Canonical",
+      "image_offer": "UbuntuServer",
+      "image_sku": "18.04-LTS",
+      "image_version": "1.0.1",
+      "location": "west US",
+      "vm_size": "Standard_D2_v2"
+    },
+    "builders": [
+      {
+        "type": "azure-arm",
+        "client_id": "{{user `client_id`}}",
+        "client_secret": "{{user `client_secret`}}",
+        "subscription_id": "{{user `subscription_id`}}",
+        "tenant_id": "{{user `tenant_id`}}",
+        "managed_image_resource_group_name": "{{user `resource_group_name`}}",
+        "managed_image_name": "{{user `managed_image_name`}}",
+        "os_type": "{{user `os_type`}}",
+        "image_publisher": "{{user `image_publisher`}}",
+        "image_offer": "{{user `image_offer`}}",
+        "image_sku": "{{user `image_sku`}}",
+        "azure_tags": {
+          "created_by": "packer"
+        },
+        "location": "{{user `location`}}",
+        "vm_size": "{{user `vm_size`}}"
+      }
+    ],
+    "provisioners": [
+      {
+        "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+        "scripts": ["script.sh"],
+        "type": "shell"
+      },
+      {
+        "execute_command": "chmod +x {{ .Path }}; {{ .Vars }} sudo -E sh '{{ .Path }}'",
+        "inline": [
+          "/usr/sbin/waagent -force -deprovision+user && export HISTSIZE=0 && sync"
+        ],
+        "inline_shebang": "/bin/sh -x",
+        "type": "shell"
+      }
+    ]
+  }
