@@ -1,3 +1,0 @@
-master-server ansible_user=node ansible_host=40.78.80.47 ansible_connection=ssh ansible_ssh_pass=Password@123
-node-server1 ansible_user=node ansible_host=104.42.144.58 ansible_connection=ssh ansible_ssh_pass=Password@123
-node-server2 ansible_user=node ansible_host=104.42.145.159 ansible_connection=ssh ansible_ssh_pass=Password@123
