@@ -1,5 +1,6 @@
 ```json
 
+
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
@@ -78,6 +79,34 @@
             "metadata": {
                 "description": "Enter SQL version number"
             }
+        },
+        "subscriptionId": {
+            "type": "string",
+            "defaultValue": "xxx-xxxx-4014-a26a-xxxxx",
+            "metadata": {
+                "description": "Enter subscriptionId"
+            }
+        },
+        "networkResourceGroup": {
+            "type": "string",
+            "defaultValue": "ods",
+            "metadata": {
+                "description": "Enter network resource group name"
+            }
+        },
+        "vnetName": {
+            "type": "string",
+            "defaultValue": "ods-vnet",
+            "metadata": {
+                "description": "Enter vnetName name"
+            }
+        },
+        "subnetName": {
+            "type": "string",
+            "defaultValue": "default",
+            "metadata": {
+                "description": "Enter subnetName name"
+            }
         }
     },
     "functions": [],
@@ -85,7 +114,8 @@
         "sqlServerName": "[concat(parameters('project'), '-', parameters('environmentName'), '-sql')]",
         "sqlDatabaseName": "[concat(parameters('project'), '-', parameters('environmentName'), '-sqldb')]",
         "storageAccountName": "[concat(parameters('project'), parameters('environmentName'), 'str')]",
-        "dataFactoryName": "[concat(parameters('project'), '-', parameters('environmentName'), '-adf')]"
+        "dataFactoryName": "[concat(parameters('project'), '-', parameters('environmentName'), '-adf')]",
+        "SubnetID": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourceGroups/',parameters('networkResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('vnetName'),'/subnets/',parameters('subnetName'))]"
     },
     "resources": [
         {
@@ -111,6 +141,9 @@
             "type": "Microsoft.Sql/servers/databases",
             "apiVersion": "2020-08-01-preview",
             "location": "[resourceGroup().location]",
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ],
             "tags": {
                 "Created BY": "[parameters('createdBy')]",
                 "Project": "[parameters('project')]",
@@ -175,9 +208,86 @@
                 "type": "SystemAssigned"
             },
             "properties": {}
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('sqlServerName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Created BY": "[parameters('createdBy')]",
+                "Project": "[parameters('project')]",
+                "Client Group": "[parameters('clientGroup')]",
+                "Managed By Group": "[parameters('managedByGroup')]",
+                "IO Code": "[parameters('ioCode')]",
+                "Accreditation Number": "[parameters('accreditationNumber')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('sqlServerName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.Sql/servers', variables('sqlServerName'))]",
+                            "groupIds": [ "sqlServer" ],
+                            "privateLinkServiceConnectionState": {
+                                "status": "Approved",
+                                "description": "Auto-Approved",
+                                "actionsRequired": "None"
+                            }
+                        }
+                    }
+                ],
+                "manualPrivateLinkServiceConnections": [],
+                "subnet": {
+                    "id": "[variables('SubnetID')]"
+                },
+                "customDnsConfigs": []
+            }
+        },
+        {
+            "type": "Microsoft.Network/privateEndpoints",
+            "apiVersion": "2020-05-01",
+            "name": "[variables('dataFactoryName')]",
+            "location": "[resourceGroup().location]",
+            "tags": {
+                "Created BY": "[parameters('createdBy')]",
+                "Project": "[parameters('project')]",
+                "Client Group": "[parameters('clientGroup')]",
+                "Managed By Group": "[parameters('managedByGroup')]",
+                "IO Code": "[parameters('ioCode')]",
+                "Accreditation Number": "[parameters('accreditationNumber')]"
+            },
+            "dependsOn": [
+                "[resourceId('Microsoft.DataFactory/factories', variables('dataFactoryName'))]"
+            ],
+            "properties": {
+                "privateLinkServiceConnections": [
+                    {
+                        "name": "[variables('dataFactoryName')]",
+                        "properties": {
+                            "privateLinkServiceId": "[resourceId('Microsoft.DataFactory/factories', variables('dataFactoryName'))]",
+                            "groupIds": [ "DataFactory" ],
+                            "privateLinkServiceConnectionState": {
+                                "status": "Approved",
+                                "description": "Auto-Approved",
+                                "actionsRequired": "None"
+                            }
+                        }
+                    }
+                ],
+                "manualPrivateLinkServiceConnections": [],
+                "subnet": {
+                    "id": "[variables('SubnetID')]"
+                },
+                "customDnsConfigs": []
+            }
         }
     ],
     "outputs": {}
 }
+
 
 ```
