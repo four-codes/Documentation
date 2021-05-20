@@ -1,6 +1,7 @@
 ```json
 
 
+
 {
     "$schema": "https://schema.management.azure.com/schemas/2019-04-01/deploymentTemplate.json#",
     "contentVersion": "1.0.0.0",
@@ -80,13 +81,6 @@
                 "description": "Enter SQL version number"
             }
         },
-        "subscriptionId": {
-            "type": "string",
-            "defaultValue": "xxx-xxxx-4014-a26a-xxxxx",
-            "metadata": {
-                "description": "Enter subscriptionId"
-            }
-        },
         "networkResourceGroup": {
             "type": "string",
             "defaultValue": "ods",
@@ -115,7 +109,7 @@
         "sqlDatabaseName": "[concat(parameters('project'), '-', parameters('environmentName'), '-sqldb')]",
         "storageAccountName": "[concat(parameters('project'), parameters('environmentName'), 'str')]",
         "dataFactoryName": "[concat(parameters('project'), '-', parameters('environmentName'), '-adf')]",
-        "SubnetID": "[concat('/subscriptions/',parameters('subscriptionId'),'/resourceGroups/',parameters('networkResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('vnetName'),'/subnets/',parameters('subnetName'))]"
+        "SubnetID": "[concat('/subscriptions/',subscription().subscriptionid,'/resourceGroups/',parameters('networkResourceGroup'),'/providers/Microsoft.Network/virtualNetworks/',parameters('vnetName'),'/subnets/',parameters('subnetName'))]"
     },
     "resources": [
         {
@@ -288,6 +282,7 @@
     ],
     "outputs": {}
 }
+
 
 
 ```
