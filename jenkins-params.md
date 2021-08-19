@@ -20,7 +20,7 @@ pipeline {
 
         steps {
             sh'''
-	            sshpass -p password ssh paywalletdevops@35.225.43.162 bash test-automation.sh $VALUES_SH
+	            sshpass -p password ssh user@ip bash test-automation.sh $VALUES_SH
             '''
 
             }
