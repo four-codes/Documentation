@@ -31,3 +31,15 @@ sudo vim /etc/ssh/sshd_config
   sudo systemctl restart sshd
   
 ```
+```bash
+
+# verification
+
+  ssh sftp_user@localhost
+  # This means that sftp_user can no longer can access the server shell using SSH
+
+  sftp sftp_user@localhost
+  sftp> ls
+  
+```
+
