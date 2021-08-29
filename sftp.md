@@ -16,12 +16,12 @@ sudo vim /etc/ssh/sshd_config
 
   Match User sftp_user
   ForceCommand internal-sftp
-  PasswordAuthentication yes
-  ChrootDirectory /var/sftp/myfolder
+  PasswordAuthentication yes # Existing value no. Please commentout the line
+  ChrootDirectory /var/sftp/folder
   PermitTunnel no
   AllowAgentForwarding no
   AllowTcpForwarding no
-  X11Forwarding no
+  X11Forwarding no  # Existing value yes. Please commentout the line
   
 ```
 
