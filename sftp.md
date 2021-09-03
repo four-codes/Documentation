@@ -43,3 +43,30 @@ sudo vim /etc/ssh/sshd_config
   
 ```
 
+
+keybased authendication
+
+
+sudo vim /etc/ssh/sshd_config
+
+  Match User sftp_user
+  ForceCommand internal-sftp
+  PasswordAuthentication yes # Existing value no. Please change the line
+  ChrootDirectory /var/sftp/folder
+  PermitTunnel no
+  AllowAgentForwarding no
+  AllowTcpForwarding no
+  X11Forwarding no  # Existing value yes. Please change the line
+  
+```
+Match User sftp_user
+ForceCommand internal-sftp
+PubkeyAuthentication yes
+AuthorizedKeysFile .ssh/authorized_keys
+PasswordAuthentication no
+ChrootDirectory /var/sftp/myfolder
+PermitTunnel no
+AllowAgentForwarding no
+AllowTcpForwarding no
+X11Forwarding no
+
