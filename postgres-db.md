@@ -43,7 +43,6 @@ Connect to PostgreSQL database
     psql -d database -U  user -W
     
  ```
-
     For example, to connect to dvdrental database under postgres user, you use the following command:
 
  ```sql
@@ -53,15 +52,17 @@ Connect to PostgreSQL database
     dvdrental=#
 
 ```
-    If you want to connect to a database that resides on another host, you add the -h option as follows:
+
+```bash
+    # If you want to connect to a database that resides on another host, you add the -h option as follows:
 
     psql -h host -d database -U user -W
     
-
-    In case you want to use SSL mode for the connection, just specify it as shown in the following command:
+    # In case you want to use SSL mode for the connection, just specify it as shown in the following command:
 
     psql -U user -h host "dbname=db sslmode=require"
 
+```
 
 Switch connection to a new database
 
