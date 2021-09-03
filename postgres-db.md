@@ -241,14 +241,15 @@ PostgreSQL drops the testdb1permanently.
 ```bash
 
 # pg_dump -U username dbname > dump.sql
+pg_dump -U postgres postgres > dump.sql
 # Extract Schema Only           -s option
+pg_dump -U postgres -s postgres > dump.sql
 # Extract Data Only 	        -a option
+pg_dump -U postgres -a postgres > dump.sql
 # Generate DROP statements      -c option
-# Export OIDs 		            -o option 
+# Export OIDs                   -o option 
 
 pg_dump -h hosturl  -U dbuser  mydb | gzip -9 > mydb.sql.gz
-pg_dump -U postgres postgres > dump.sql
-
 ```
 
 
