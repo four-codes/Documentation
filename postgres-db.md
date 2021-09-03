@@ -18,12 +18,21 @@ db creation:
 
 psql restore command: 
 
+```bash
+
     gunzip < home/ubuntu/ita_ds_prod0309.gz | psql --host=xxxxrds.amazonaws.com --port=5432 --username=xxxx --password mydb
-    
-psql dump 
+
+```
+
+psql dump
+
+```bash
 
     sudo -u postgres pg_dump mydb | gzip -9 > mydb.sql.gz
-    
+    pg_dump -h hosturl  -U dbuser  mydb | gzip -9 > mydb.sql.gz
+
+```
+
 Connect to PostgreSQL database
 
     The following command connects to a database under a specific user. 
