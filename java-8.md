@@ -13,6 +13,7 @@ RUN mvn clean package
 # Multistage
 
 FROM openjdk:8-jre-alpine
+RUN apk upgrade
 WORKDIR /app
 COPY --from=build /app/web-backend/target/web-backend-2.4.2.jar .
 EXPOSE 8083
