@@ -1,5 +1,9 @@
 # Documentation
 
+  windows request checker
+
+
+    Invoke-WebRequest -Headers @{Host='ntwo.dodonotdo.in'} http://3.67.199.67  -UseBasicParsing | Select-Object StatusCode
 
   SSL certficate creation 
 
