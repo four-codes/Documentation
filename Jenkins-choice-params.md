@@ -10,7 +10,7 @@ pipeline {
         stage('CLEAN THE BRANCHES') {
             steps {
                 sh '''
-                    bash branch-deletion.sh ${GROUP_AND_REPO_NAME} ${SINCE}
+                    bash branch-deletion.sh ${params.GROUP_AND_REPO_NAME} ${params.SINCE}
                 '''
             }
         }
