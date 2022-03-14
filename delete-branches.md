@@ -10,7 +10,7 @@ REPO_NAME=`echo "${GROUP_REPO_COMBINATION}" | awk -F / '{print $1}'`
 rm -rf .git
 
 # CLONE THE REPO WITHOUT CHECKOUT
-git clone -n "git@github.com:FourTimes/${REPO_NAME}.git"
+git clone -n "git@github.com:${GROUP_REPO_COMBINATION}.git"
 
 # SWITCH THE REPO DIRECTORY
 cd $REPO_NAME
