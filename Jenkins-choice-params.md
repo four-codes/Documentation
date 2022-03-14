@@ -2,7 +2,7 @@
 pipeline {
     agent any
     environment {
-        REPO_NAME = credentials('git-username')
+        REPO_USERNAME = credentials('git-username')
         REPO_TOKEN = credentials('git-token')
     }
     parameters {
@@ -18,7 +18,7 @@ pipeline {
             }
             steps {
                 sh '''
-                    bash branch-deletion.sh ${REPOSITORY} ${DURATION} ${REPO_NAME} ${REPO_TOKEN}
+                    bash branch-deletion.sh ${REPOSITORY} ${DURATION} ${REPO_USERNAME} ${REPO_TOKEN}
                 '''
             }
         }
