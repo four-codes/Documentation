@@ -23,17 +23,11 @@ pipeline {
             }
         }
     }
-
-
-
-
-
-
-
-
-
-
-
+    post {
+        always {
+            cleanws()
+        }
+    }
 
 }
 ```
