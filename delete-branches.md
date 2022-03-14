@@ -2,8 +2,12 @@
 #!/usr/bin/env bash
 
 # ASSIGN REPO NAME AS VARIABLE 
-REPO_NAME=$1
+GROUP_REPO_COMBINATION=$1
+REPO_NAME=`echo "${GROUP_REPO_COMBINATION}" | awk -F / '{print $1}'`
 SINCE='1 month ago'
+
+# REMOVE THE BAS REPO META INFORMATION
+rm -rf .git
 
 # CLONE THE REPO WITHOUT CHECKOUT
 git clone -n "git@github.com:FourTimes/${REPO_NAME}.git"
