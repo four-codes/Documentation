@@ -4,13 +4,16 @@
 # ASSIGN REPO NAME AS VARIABLE 
 GROUP_REPO_COMBINATION=$1
 SINCE=$2
-REPO_NAME=`echo "${GROUP_REPO_COMBINATION}" | awk -F / '{print $1}'`
+REPO_NAME=`echo "${GROUP_REPO_COMBINATION}" | awk -F / '{print $2}'`
 
 # REMOVE THE BAS REPO META INFORMATION
 rm -rf .git
 
 # CLONE THE REPO WITHOUT CHECKOUT
-git clone -n "git@github.com:${GROUP_REPO_COMBINATION}.git"
+# git clone -n "git@github.com:${GROUP_REPO_COMBINATION}.git"
+
+# HTTPS CLONE
+git clone "https://fourtimes:xxxxxxx@github.com/${COMBINATION_REPO_NAME}.git"
 
 # SWITCH THE REPO DIRECTORY
 cd $REPO_NAME
