@@ -24,5 +24,5 @@ done
 rm -rf "../${REPO_NAME}"
 
 # NOTE => $(git branch -r  | grep -v HEAD | grep -v develop | grep -v master | grep -v main |  grep -v release | sed /\*/d)
-
+# run command => bash filename.sh REPO_NAME
 ```
