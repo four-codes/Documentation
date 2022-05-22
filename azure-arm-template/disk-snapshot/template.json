@@ -1,0 +1,56 @@
+{
+  "$schema": "https://schema.management.azure.com/schemas/2015-01-01/deploymentTemplate.json#",
+  "contentVersion": "1.0.0.0",
+  "parameters": {
+    "accountType": {
+      "type": "string"
+    },
+    "location": {
+      "type": "string"
+    },
+    "utcShortValue": {
+      "type": "string",
+      "defaultValue": "[utcNow('yyyy_MM_dd')]"
+    },
+  },
+  "variables": {
+    "snapShotDetails": [
+      {
+        "originDiskName": "/subscriptions/xxxxxxxxxxxxxxxxxxxxx/resourceGroups/xxxxx/providers/Microsoft.Compute/disks/xxxxx",
+        "snapShotDiskName": "[concat('dodo-snap', '_bkp_', parameters('utcShortValue'))]"
+      },
+      {
+        "originDiskName": "/subscriptions/xxxxxxxxxxxxxxxxxxxxx/resourceGroups/xxxxx/providers/Microsoft.Compute/disks/xxxxx",
+        "snapShotDiskName": "[concat('dodo-server', '_bkp_', parameters('utcShortValue'))]"
+      }
+    ]
+  },
+  "resources": [
+    {
+      "apiVersion": "2021-12-01",
+      "type": "Microsoft.Compute/snapshots",
+      "name": "[variables('snapShotDetails')[copyIndex('diskSnapshotDetails')].snapShotDiskName]",
+      "location": "[parameters('location')]",
+      "Copy": {
+        "name": "diskSnapshotDetails",
+        "count": "[length(variables('snapShotDetails'))]"
+      },
+      "sku": {
+        "name": "[parameters('accountType')]"
+      },
+      "properties": {
+        "creationData": {
+          "createOption": "Copy",
+          "sourceResourceId": "[variables('snapShotDetails')[copyIndex('diskSnapshotDetails')].originDiskName]"
+        },
+        "networkAccessPolicy": "AllowAll",
+        "publicNetworkAccess": "Enabled",
+        "incremental": "false"
+      },
+      "tags": {
+        "Agency-Code": "ITE",
+        "Project-Code": "AMDM"
+      }
+    }
+  ]
+}
